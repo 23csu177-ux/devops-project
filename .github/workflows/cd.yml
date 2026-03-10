@@ -53,6 +53,8 @@ jobs:
         with:
           name: build-artifact
           path: ./deploy
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
       - name: Fallback build if no artifact
@@ -173,6 +175,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-production]
     if: failure() && github.ref_name == 'main'
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
