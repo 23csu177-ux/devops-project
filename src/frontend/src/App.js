@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 const APP_VERSION = process.env.REACT_APP_VERSION || '1.0.0';
