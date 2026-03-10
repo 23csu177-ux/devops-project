@@ -1,0 +1,208 @@
+###############################################################################
+# Rollback Workflow - Emergency Rollback Pipeline
+# Trigger: workflow_call (called from CD on health check failure)
+#          workflow_dispatch (manual trigger for emergencies)
+# Redeploys previous release version
+###############################################################################
+
+name: Rollback Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      failed_version:
+        description: 'The version that failed'
+        required: false
+        type: string
+        default: 'unknown'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      failed_version:
+        description: 'The version that failed'
+        required: false
+        type: string
+        default: 'unknown'
+
+concurrency:
+  group: rollback-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  rollback:
+    name: Rollback to Previous Release
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get previous release tag
+        id: prev-release
+        run: |
+          # Get all tags sorted by version, pick the second-to-last
+          ALL_TAGS=$(git tag --sort=-v:refname | head -10)
+          echo "All recent tags:"
+          echo "$ALL_TAGS"
+
+          CURRENT_TAG=$(git tag --sort=-v:refname | head -1)
+          PREVIOUS_TAG=$(git tag --sort=-v:refname | sed -n '2p')
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, cannot rollback"
+            echo "has_previous=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "Current tag: $CURRENT_TAG"
+          echo "Rolling back to: $PREVIOUS_TAG"
+          PREV_VERSION=$(echo "$PREVIOUS_TAG" | sed 's/^v//')
+
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          echo "previous_version=$PREV_VERSION" >> $GITHUB_OUTPUT
+          echo "current_tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
+          echo "has_previous=true" >> $GITHUB_OUTPUT
+
+      - name: Checkout previous release
+        if: steps.prev-release.outputs.has_previous == 'true'
+        run: |
+          git checkout ${{ steps.prev-release.outputs.previous_tag }}
+          echo "Checked out ${{ steps.prev-release.outputs.previous_tag }}"
+
+      - name: Redeploy previous Docker image
+        if: steps.prev-release.outputs.has_previous == 'true'
+        run: |
+          PREV_TAG="${{ steps.prev-release.outputs.previous_tag }}"
+          PREV_VERSION="${{ steps.prev-release.outputs.previous_version }}"
+
+          echo "Redeploying version $PREV_VERSION..."
+
+          # Stop failed deployment
+          docker stop app-production 2>/dev/null || true
+          docker rm app-production 2>/dev/null || true
+
+          # Build and deploy previous version
+          docker build -t devops-app:$PREV_TAG .
+          docker run -d \
+            --name app-production \
+            -p 3001:3001 \
+            -e NODE_ENV=production \
+            --restart unless-stopped \
+            devops-app:$PREV_TAG
+
+          echo "Redeployed $PREV_TAG successfully"
+
+      - name: Health check after rollback
+        if: steps.prev-release.outputs.has_previous == 'true'
+        run: |
+          sleep 10
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/health 2>/dev/null || echo "000")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "Rollback health check PASSED (HTTP 200)"
+              exit 0
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Health check attempt $RETRY_COUNT/$MAX_RETRIES (HTTP $HTTP_STATUS)"
+            sleep 5
+          done
+          echo "Rollback health check FAILED"
+          exit 1
+
+      - name: Mark deployment as failed
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Create a deployment status marking it as failed
+            const deployments = await github.rest.repos.listDeployments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 1
+            });
+
+            if (deployments.data.length > 0) {
+              await github.rest.repos.createDeploymentStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: deployments.data[0].id,
+                state: 'failure',
+                description: 'Deployment rolled back: ${{ inputs.reason }}'
+              });
+            }
+
+            console.log('Deployment marked as failed');
+
+      - name: Comment on PR with failure reason
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              sort: 'updated',
+              direction: 'desc',
+              per_page: 5
+            });
+
+            const mergedPrs = prs.filter(pr => pr.merged_at);
+            if (mergedPrs.length > 0) {
+              const latestPr = mergedPrs[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: latestPr.number,
+                body: [
+                  '## Rollback Executed',
+                  '',
+                  '| Detail | Value |',
+                  '|--------|-------|',
+                  '| **Failed Version** | `${{ inputs.failed_version }}` |',
+                  '| **Rolled Back To** | `${{ steps.prev-release.outputs.previous_tag }}` |',
+                  '| **Reason** | ${{ inputs.reason }} |',
+                  '| **Time** | ' + new Date().toISOString() + ' |',
+                  '| **Triggered By** | `${{ github.actor }}` |',
+                  '',
+                  'The production environment has been rolled back to the previous stable release.',
+                  'Please investigate and fix the issue before attempting another deployment.'
+                ].join('\n')
+              });
+              console.log(`Comment posted on PR #${latestPr.number}`);
+            } else {
+              console.log('No recent merged PR found to comment on');
+            }
+
+      - name: Rollback summary
+        if: always()
+        run: |
+          echo "============================================"
+          echo "           ROLLBACK SUMMARY                 "
+          echo "============================================"
+          echo "Reason:           ${{ inputs.reason }}"
+          echo "Failed Version:   ${{ inputs.failed_version }}"
+          echo "Rolled Back To:   ${{ steps.prev-release.outputs.previous_tag }}"
+          echo "Status:           Completed"
+          echo "Time:             $(date -u)"
+          echo "============================================"

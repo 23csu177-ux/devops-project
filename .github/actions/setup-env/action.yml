@@ -1,0 +1,37 @@
+name: 'Setup Environment'
+description: 'Composite action to setup Node.js and install dependencies'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '18'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      id: cache-npm
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ inputs.node-version }}-${{ hashFiles('package-lock.json', 'package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ inputs.node-version }}-
+
+    - name: Install dependencies
+      if: steps.cache-npm.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci
+
+    - name: Verify installation
+      shell: bash
+      run: |
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "Dependencies installed successfully"
