@@ -1,0 +1,157 @@
+[
+  {
+    "id": 1,
+    "userId": 2,
+    "score": 0,
+    "total": 2,
+    "difficulty": "easy",
+    "topic": "Git",
+    "answers": [
+      {
+        "questionId": 1,
+        "userAnswer": "A",
+        "correctAnswer": "B",
+        "isCorrect": false
+      },
+      {
+        "questionId": 2,
+        "userAnswer": "B",
+        "correctAnswer": "C",
+        "isCorrect": false
+      }
+    ],
+    "completedAt": "2026-03-11T18:12:02.668Z"
+  },
+  {
+    "id": 2,
+    "userId": 2,
+    "score": 1,
+    "total": 2,
+    "difficulty": "hard",
+    "topic": "Git",
+    "answers": [
+      {
+        "questionId": 5,
+        "userAnswer": "D",
+        "correctAnswer": "B",
+        "isCorrect": false
+      },
+      {
+        "questionId": 32,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      }
+    ],
+    "completedAt": "2026-03-11T18:12:30.183Z"
+  },
+  {
+    "id": 3,
+    "userId": 2,
+    "score": 0,
+    "total": 2,
+    "difficulty": "medium",
+    "topic": "Kubernetes",
+    "answers": [
+      {
+        "questionId": 13,
+        "userAnswer": "A",
+        "correctAnswer": "B",
+        "isCorrect": false
+      },
+      {
+        "questionId": 14,
+        "userAnswer": "B",
+        "correctAnswer": "C",
+        "isCorrect": false
+      }
+    ],
+    "completedAt": "2026-03-11T18:12:37.492Z"
+  },
+  {
+    "id": 4,
+    "userId": 2,
+    "score": 2,
+    "total": 2,
+    "difficulty": "hard",
+    "topic": "CI/CD",
+    "answers": [
+      {
+        "questionId": 25,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      },
+      {
+        "questionId": 35,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      }
+    ],
+    "completedAt": "2026-03-11T18:12:50.442Z"
+  },
+  {
+    "id": 5,
+    "userId": 3,
+    "score": 0,
+    "total": 2,
+    "difficulty": "hard",
+    "topic": "Docker",
+    "answers": [
+      {
+        "questionId": 10,
+        "userAnswer": "A",
+        "correctAnswer": "C",
+        "isCorrect": false
+      },
+      {
+        "questionId": 33,
+        "userAnswer": "D",
+        "correctAnswer": "A",
+        "isCorrect": false
+      }
+    ],
+    "completedAt": "2026-03-11T18:13:00.933Z"
+  },
+  {
+    "id": 6,
+    "userId": 3,
+    "score": 2,
+    "total": 2,
+    "difficulty": "hard",
+    "topic": "Git",
+    "answers": [
+      {
+        "questionId": 5,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      },
+      {
+        "questionId": 32,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      }
+    ],
+    "completedAt": "2026-03-11T18:13:06.292Z"
+  },
+  {
+    "id": 7,
+    "userId": 3,
+    "score": 1,
+    "total": 1,
+    "difficulty": "medium",
+    "topic": "Kubernetes",
+    "answers": [
+      {
+        "questionId": 13,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      }
+    ],
+    "completedAt": "2026-03-11T18:13:44.808Z"
+  }
+]

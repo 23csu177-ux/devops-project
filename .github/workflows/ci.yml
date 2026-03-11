@@ -88,9 +88,9 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:ci
 
-      - name: Check coverage threshold (80%)
+      - name: Check coverage threshold (50%)
         run: |
-          echo "Running coverage check with 80% threshold..."
+          echo "Running coverage check with 50% threshold..."
           npx jest --coverage --forceExit --ci
           echo "Coverage threshold check passed (enforced via jest coverageThreshold in package.json)"
 

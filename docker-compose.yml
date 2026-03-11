@@ -8,6 +8,8 @@ services:
     environment:
       NODE_ENV: production
       APP_VERSION: ${APP_VERSION:-1.2.2}
+    volumes:
+      - quiz_data:/app/src/backend/data
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
@@ -19,8 +21,13 @@ services:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:3001
     ports:
       - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
+
+volumes:
+  quiz_data:
