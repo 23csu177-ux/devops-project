@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 
 const TOPIC_ICONS = { Git: '🔀', Docker: '🐳', Kubernetes: '☸️', Jenkins: '🔧', 'CI/CD': '🔄', DevSecOps: '🔒' };

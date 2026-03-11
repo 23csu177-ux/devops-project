@@ -110,19 +110,19 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const loadQuestions = useCallback(async () => {
     setLoading(true);
-    try { const d = await api.getAllQuestions(); setQuestions(d.questions || []); } catch {}
+    try { const d = await api.getAllQuestions(); setQuestions(d.questions || []); } catch (_) { /* ignore */ }
     setLoading(false);
   }, []);
 
   const loadResults = useCallback(async () => {
-    try { const d = await api.getAllResults(); setResults(d.results || []); } catch {}
+    try { const d = await api.getAllResults(); setResults(d.results || []); } catch (_) { /* ignore */ }
   }, []);
 
   useEffect(() => { loadQuestions(); loadResults(); }, [loadQuestions, loadResults]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this question?')) return;
-    try { await api.deleteQuestion(id); loadQuestions(); } catch {}
+    try { await api.deleteQuestion(id); loadQuestions(); } catch (_) { /* ignore */ }
   };
 
   const handleSave = () => { setShowModal(false); setEditing(null); loadQuestions(); };
