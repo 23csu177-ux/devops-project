@@ -153,5 +153,28 @@
       }
     ],
     "completedAt": "2026-03-11T18:13:44.808Z"
+  },
+  {
+    "id": 8,
+    "userId": 5,
+    "score": 1,
+    "total": 2,
+    "difficulty": "medium",
+    "topic": "Git",
+    "answers": [
+      {
+        "questionId": 3,
+        "userAnswer": "B",
+        "correctAnswer": "B",
+        "isCorrect": true
+      },
+      {
+        "questionId": 4,
+        "userAnswer": "C",
+        "correctAnswer": "A",
+        "isCorrect": false
+      }
+    ],
+    "completedAt": "2026-03-12T03:51:43.067Z"
   }
 ]
