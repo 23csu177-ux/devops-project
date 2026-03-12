@@ -34,5 +34,17 @@
     "username": "kjlnbkjnsn",
     "role": "student",
     "created_at": "2026-03-12T04:24:31.300Z"
+  },
+  {
+    "id": 7,
+    "username": "mjnkj",
+    "role": "student",
+    "created_at": "2026-03-12T05:28:29.563Z"
+  },
+  {
+    "id": 8,
+    "username": "dscv",
+    "role": "teacher",
+    "created_at": "2026-03-12T05:29:10.167Z"
   }
 ]
