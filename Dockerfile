@@ -20,6 +20,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src/backend ./src/backend
 COPY --from=builder /app/version.txt ./version.txt
 
+RUN chown -R appuser:appgroup /app/src/backend/data
+
 ENV NODE_ENV=production
 ENV PORT=3001
 
